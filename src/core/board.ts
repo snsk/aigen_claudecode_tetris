@@ -100,27 +100,44 @@ export class Board {
   clearLines(): number[] {
     const clearedLines: number[] = [];
 
-    // Check each row from bottom to top
+    // Check each row from bottom to top and remove immediately
     for (let row = TOTAL_HEIGHT - 1; row >= 0; row--) {
       if (this.isLineFull(row)) {
+        console.log(`Clearing line ${row}:`, this.grid[row]);
         clearedLines.push(row);
+        // Remove the line immediately and add empty line at top
+        this.grid.splice(row, 1);
+        this.grid.unshift(Array(BOARD_WIDTH).fill(null));
       }
     }
 
-    // Remove cleared lines
-    for (const row of clearedLines) {
-      this.grid.splice(row, 1);
-      this.grid.unshift(Array(BOARD_WIDTH).fill(null));
+    if (clearedLines.length > 0) {
+      console.log(`Total cleared lines: ${clearedLines.length}`);
     }
 
-    return clearedLines;
+    return clearedLines.reverse(); // Return in top-to-bottom order
   }
 
   /**
    * Check if a line is full
    */
   private isLineFull(row: number): boolean {
-    return this.grid[row].every(cell => cell !== null);
+    // Ensure the row exists and has exactly BOARD_WIDTH cells
+    if (row < 0 || row >= TOTAL_HEIGHT || !this.grid[row]) {
+      return false;
+    }
+    
+    // Check that the row has the correct width
+    if (this.grid[row].length !== BOARD_WIDTH) {
+      return false;
+    }
+    
+    // Check that every cell contains a valid tetromino type (not null or undefined)
+    return this.grid[row].every(cell => 
+      cell !== null && 
+      cell !== undefined && 
+      Object.values(TetrominoType).includes(cell as TetrominoType)
+    );
   }
 
   /**

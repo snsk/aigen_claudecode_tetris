@@ -107,9 +107,9 @@ export class AnimationUtils {
    * Create combo text
    */
   static createComboText(combo: number, boardWidth: number, boardHeight: number, blockSize: number): PIXI.Text {
-    const text = new PIXI.Text(`${combo} COMBO!`, {
+    const text = new PIXI.Text(`${combo} Ren`, {
       fontFamily: 'Arial',
-      fontSize: 24,
+      fontSize: 18,
       fill: 0xffff00,
       fontWeight: 'bold',
     });
