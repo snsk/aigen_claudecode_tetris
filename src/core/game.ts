@@ -18,6 +18,7 @@ import {
 import { Board } from './board';
 import { BagRandomizer } from './bag';
 import { PieceData } from './piece';
+import { SoundManager } from '@/utils/sound-manager';
 
 /**
  * Input actions
@@ -37,7 +38,7 @@ export enum InputAction {
  * Game events
  */
 export interface GameEvent {
-  type: 'line_clear' | 'piece_lock' | 'game_over' | 'level_up' | 'tspin' | 'combo';
+  type: 'line_clear' | 'piece_lock' | 'piece_landing' | 'game_over' | 'level_up' | 'tspin' | 'combo';
   data?: any;
 }
 
@@ -47,6 +48,7 @@ export interface GameEvent {
 export class Game {
   private board: Board;
   private bag: BagRandomizer;
+  private soundManager: SoundManager;
   private state: GameState = GameState.IDLE;
   private stats: GameStats = {
     score: 0,
@@ -64,6 +66,8 @@ export class Game {
   private lockTimer = 0;
   private dasTimer = 0;
   private dasDirection: 'left' | 'right' | null = null;
+  private softDropTimer = 0;
+  private isSoftDropping = false;
 
   private lastWasRotation = false;
   private eventHandlers: Map<string, ((event: GameEvent) => void)[]> = new Map();
@@ -71,6 +75,7 @@ export class Game {
   constructor() {
     this.board = new Board();
     this.bag = new BagRandomizer();
+    this.soundManager = new SoundManager();
   }
 
   /**
@@ -103,6 +108,8 @@ export class Game {
     this.lockTimer = 0;
     this.dasTimer = 0;
     this.dasDirection = null;
+    this.softDropTimer = 0;
+    this.isSoftDropping = false;
   }
 
   /**
@@ -130,6 +137,19 @@ export class Game {
       }
     }
 
+    // Handle soft drop (down key held)
+    if (this.isSoftDropping) {
+      this.softDropTimer += deltaTime;
+      const softDropInterval = 50; // 50ms per soft drop (20 times/second)
+      
+      while (this.softDropTimer >= softDropInterval) {
+        this.softDropTimer -= softDropInterval;
+        if (this.movePiece(0, 1)) {
+          this.stats.score += SCORE_SOFT_DROP;
+        }
+      }
+    }
+
     // Handle gravity
     this.dropTimer += deltaTime;
     const dropInterval = this.getDropInterval();
@@ -140,6 +160,8 @@ export class Game {
         // Can't move down, start lock timer
         if (!this.currentPiece.locked) {
           this.currentPiece.locked = true;
+          // Emit piece landing event when it first touches the ground
+          this.emit({ type: 'piece_landing', data: { piece: this.currentPiece } });
         }
       }
     }
@@ -198,9 +220,15 @@ export class Game {
 
       case InputAction.SOFT_DROP:
         if (pressed) {
+          this.isSoftDropping = true;
+          this.softDropTimer = 0;
+          // Immediate soft drop on press
           if (this.movePiece(0, 1)) {
             this.stats.score += SCORE_SOFT_DROP;
           }
+        } else {
+          this.isSoftDropping = false;
+          this.softDropTimer = 0;
         }
         break;
 
@@ -212,19 +240,24 @@ export class Game {
 
       case InputAction.ROTATE_CW:
         if (pressed) {
-          this.rotatePiece(true);
+          if (this.rotatePiece(true)) {
+            this.soundManager.playPieceRotate();
+          }
         }
         break;
 
       case InputAction.ROTATE_CCW:
         if (pressed) {
-          this.rotatePiece(false);
+          if (this.rotatePiece(false)) {
+            this.soundManager.playPieceRotate();
+          }
         }
         break;
 
       case InputAction.HOLD:
         if (pressed && this.canHold) {
           this.performHold();
+          this.soundManager.playHold();
         }
         break;
     }
@@ -311,6 +344,12 @@ export class Game {
     }
 
     this.stats.score += dropDistance * SCORE_HARD_DROP;
+    
+    // Emit landing event before locking for hard drop
+    if (!this.currentPiece.locked) {
+      this.emit({ type: 'piece_landing', data: { piece: this.currentPiece } });
+    }
+    
     this.lockCurrentPiece();
   }
 
@@ -367,12 +406,16 @@ export class Game {
     }
 
     this.emit({ type: 'piece_lock', data: { piece: this.currentPiece } });
+    // Play piece lock sound
+    this.soundManager.playPieceLock();
 
     // Clear lines
     const clearedLines = this.board.clearLines();
     if (clearedLines.length > 0) {
       this.handleLineClears(clearedLines.length);
       this.emit({ type: 'line_clear', data: { lines: clearedLines } });
+      // Play line clear sound
+      this.soundManager.playLineClear(clearedLines.length);
     } else {
       // Reset combo
       this.stats.combo = 0;
@@ -382,6 +425,7 @@ export class Game {
     if (this.board.isGameOver()) {
       this.state = GameState.GAME_OVER;
       this.emit({ type: 'game_over' });
+      this.soundManager.playGameOver();
       return;
     }
 
@@ -440,6 +484,7 @@ export class Game {
     if (newLevel > this.stats.level) {
       this.stats.level = newLevel;
       this.emit({ type: 'level_up', data: { level: newLevel } });
+      this.soundManager.playLevelUp();
     }
   }
 
@@ -489,6 +534,19 @@ export class Game {
   }
 
   /**
+   * Unsubscribe from game events
+   */
+  off(event: string, handler: (event: GameEvent) => void): void {
+    const handlers = this.eventHandlers.get(event);
+    if (handlers) {
+      const index = handlers.indexOf(handler);
+      if (index !== -1) {
+        handlers.splice(index, 1);
+      }
+    }
+  }
+
+  /**
    * Emit game event
    */
   private emit(event: GameEvent): void {
@@ -513,5 +571,19 @@ export class Game {
       this.currentPiece.position,
       this.currentPiece.rotation
     );
+  }
+
+  /**
+   * Get sound manager for external control
+   */
+  getSoundManager(): SoundManager {
+    return this.soundManager;
+  }
+
+  /**
+   * Cleanup resources
+   */
+  destroy(): void {
+    this.soundManager.destroy();
   }
 }

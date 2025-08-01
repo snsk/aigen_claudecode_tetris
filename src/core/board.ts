@@ -101,13 +101,18 @@ export class Board {
     const clearedLines: number[] = [];
 
     // Check each row from bottom to top and remove immediately
-    for (let row = TOTAL_HEIGHT - 1; row >= 0; row--) {
+    let row = TOTAL_HEIGHT - 1;
+    while (row >= 0) {
       if (this.isLineFull(row)) {
         console.log(`Clearing line ${row}:`, this.grid[row]);
         clearedLines.push(row);
         // Remove the line immediately and add empty line at top
         this.grid.splice(row, 1);
         this.grid.unshift(Array(BOARD_WIDTH).fill(null));
+        // Don't decrement row since we removed a line and all lines shifted down
+      } else {
+        // Only move to the next row if we didn't clear a line
+        row--;
       }
     }
 

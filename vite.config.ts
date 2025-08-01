@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { VitePWA } from 'vite-plugin-pwa';
+import { viteSingleFile } from 'vite-plugin-singlefile';
 import path from 'path';
 
 export default defineConfig({
@@ -20,6 +20,6 @@ export default defineConfig({
     },
   },
   plugins: [
-    // PWA disabled for local file execution
+    viteSingleFile()
   ],
 });

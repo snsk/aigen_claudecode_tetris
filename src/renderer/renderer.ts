@@ -9,6 +9,7 @@ import {
 import { Game } from '@/core/game';
 import { PieceData } from '@/core/piece';
 import { AnimationUtils } from '@/utils/animation-utils';
+import { ParticleSystem } from '@/utils/particle-system';
 
 /**
  * Constants for rendering
@@ -36,7 +37,7 @@ export class Renderer {
   private nextCanvases: HTMLCanvasElement[] = [];
   
   private blockTextures: Map<TetrominoType, PIXI.Texture> = new Map();
-  private particlePool: PIXI.ParticleContainer;
+  private particleSystem!: ParticleSystem;
   
   private frameCount = 0;
   private fpsUpdateTimer = 0;
@@ -54,7 +55,6 @@ export class Renderer {
     this.pieceContainer = new PIXI.Container();
     this.ghostContainer = new PIXI.Container();
     this.effectsContainer = new PIXI.Container();
-    this.particlePool = new PIXI.ParticleContainer();
   }
 
   /**
@@ -89,6 +89,9 @@ export class Renderer {
     // Create block textures
     this.createBlockTextures();
     
+    // Initialize particle system
+    this.particleSystem = new ParticleSystem(this.app, this.effectsContainer);
+    
     // Subscribe to game events
     this.subscribeToGameEvents();
     
@@ -113,7 +116,6 @@ export class Renderer {
     this.boardContainer.addChild(this.ghostContainer);
     this.boardContainer.addChild(this.pieceContainer);
     this.boardContainer.addChild(this.effectsContainer);
-    this.boardContainer.addChild(this.particlePool);
     
     this.app.stage.addChild(this.boardContainer);
   }
@@ -220,10 +222,17 @@ export class Renderer {
   private subscribeToGameEvents(): void {
     this.game.on('line_clear', (event) => {
       this.animateLineClear(event.data.lines);
+      this.emitLineClearParticles(event.data.lines);
+    });
+    
+    this.game.on('piece_landing', (event) => {
+      // Emit particles when piece first touches the ground
+      this.emitPieceLandingParticles(event.data.piece);
     });
     
     this.game.on('piece_lock', () => {
       this.animatePieceLock();
+      // Don't emit landing particles here anymore since we handle it in piece_landing
     });
     
     this.game.on('tspin', () => {
@@ -253,6 +262,9 @@ export class Renderer {
     
     // Update game
     this.game.update(deltaTime);
+    
+    // Update particle system
+    this.particleSystem.update(deltaTime);
     
     // Render board
     this.renderBoard();
@@ -488,9 +500,55 @@ export class Renderer {
   }
 
   /**
+   * Emit particles for piece landing
+   */
+  private emitPieceLandingParticles(piece: any): void {
+    if (!piece) return;
+    
+    const shape = PieceData.getShape(piece.type, piece.rotation);
+    const color = TETROMINO_COLORS[piece.type as TetrominoType];
+    
+    // Find the bottom blocks of the piece for particle emission
+    for (let col = 0; col < shape[0].length; col++) {
+      for (let row = shape.length - 1; row >= 0; row--) {
+        if (shape[row][col] === 1) {
+          const worldX = (piece.position.x + col + 0.5) * BLOCK_SIZE;
+          const worldY = (piece.position.y + row - HIDDEN_ROWS + 1) * BLOCK_SIZE;
+          
+          // Only emit if the block is visible (not in hidden area)
+          if (piece.position.y + row >= HIDDEN_ROWS) {
+            this.particleSystem.emitPieceLanding(worldX, worldY, color, 4);
+          }
+          break; // Only the bottom block in each column
+        }
+      }
+    }
+  }
+
+  /**
+   * Emit particles for line clear
+   */
+  private emitLineClearParticles(lines: number[]): void {
+    if (lines.length === 0) return;
+    
+    // Calculate the average Y position for the particle effect center
+    const visibleLines = lines.filter(line => line >= HIDDEN_ROWS);
+    if (visibleLines.length === 0) return;
+    
+    const avgY = visibleLines.reduce((sum, line) => sum + line, 0) / visibleLines.length;
+    const worldY = (avgY - HIDDEN_ROWS + 0.5) * BLOCK_SIZE;
+    const startX = 0;
+    const endX = BOARD_WIDTH * BLOCK_SIZE;
+    
+    // Emit particles based on total line count, centered on average position
+    this.particleSystem.emitLineClear(startX, endX, worldY, lines.length);
+  }
+
+  /**
    * Destroy the renderer
    */
   destroy(): void {
+    this.particleSystem?.destroy();
     this.app.destroy(true, { children: true });
   }
 }

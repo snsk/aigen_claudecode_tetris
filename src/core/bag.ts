@@ -46,6 +46,13 @@ export class BagRandomizer {
   }
 
   /**
+   * Alias for preview method (used in tests)
+   */
+  peek(count: number): TetrominoType[] {
+    return this.preview(count);
+  }
+
+  /**
    * Fill a bag with all 7 tetromino types and shuffle
    */
   private fillBag(bag: TetrominoType[]): void {

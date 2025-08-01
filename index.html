@@ -14,29 +14,11 @@
 <body class="bg-tetris-bg text-white overflow-hidden">
   <div id="app" class="w-full h-screen flex items-center justify-center">
     <div class="flex gap-8">
-      <!-- Left panel: Hold -->
+      <!-- Left panel: Hold, Score, Level, Lines -->
       <div class="flex flex-col gap-4">
         <div class="bg-tetris-grid border border-tetris-border rounded p-4">
           <h2 class="text-sm font-bold mb-2 text-gray-400">HOLD</h2>
           <div id="hold-container" class="w-24 h-24"></div>
-        </div>
-      </div>
-
-      <!-- Main game area -->
-      <div class="flex flex-col items-center">
-        <div id="game-container" class="bg-tetris-grid border-2 border-tetris-border rounded"></div>
-        <div class="mt-4 text-center">
-          <p class="text-xs text-gray-400">
-            ← → ↓: 移動 | ↑/X: 回転(CW) | Z: 回転(CCW) | C: Hold | Space: Hard Drop | P: 一時停止
-          </p>
-        </div>
-      </div>
-
-      <!-- Right panel: Next, Score, Level, Lines -->
-      <div class="flex flex-col gap-4">
-        <div class="bg-tetris-grid border border-tetris-border rounded p-4">
-          <h2 class="text-sm font-bold mb-2 text-gray-400">NEXT</h2>
-          <div id="next-container" class="flex flex-col gap-2"></div>
         </div>
         
         <div class="bg-tetris-grid border border-tetris-border rounded p-4">
@@ -58,6 +40,24 @@
               <p id="fps" class="text-xl font-mono">0</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Main game area (center) -->
+      <div class="flex flex-col items-center">
+        <div id="game-container" class="bg-tetris-grid border-2 border-tetris-border rounded"></div>
+        <div class="mt-4 text-center">
+          <p class="text-xs text-gray-400">
+            ← → ↓: 移動 | ↑/X: 回転(CW) | Z: 回転(CCW) | C: Hold | Space: Hard Drop | P: 一時停止
+          </p>
+        </div>
+      </div>
+
+      <!-- Right panel: Next -->
+      <div class="flex flex-col gap-4">
+        <div class="bg-tetris-grid border border-tetris-border rounded p-4">
+          <h2 class="text-sm font-bold mb-2 text-gray-400">NEXT</h2>
+          <div id="next-container" class="flex flex-col gap-2"></div>
         </div>
       </div>
     </div>
