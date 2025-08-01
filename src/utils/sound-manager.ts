@@ -44,83 +44,103 @@ export class SoundManager {
     frequency: number,
     duration: number,
     type: OscillatorType = 'sine',
-    volume: number = 0.3
+    volume: number = 0.35
   ): Promise<void> {
     if (!this.enabled || !this.audioContext) return;
 
     try {
       await this.resumeAudioContext();
 
-      // Create multiple oscillators for richer sound
+      // Create multiple oscillators for warm, pleasing sound
       const mainOsc = this.audioContext.createOscillator();
       const subOsc = this.audioContext.createOscillator();
-      const noiseOsc = this.audioContext.createOscillator();
+      const harmonicOsc = this.audioContext.createOscillator();
+      const warmthOsc = this.audioContext.createOscillator();
       
       const mainGain = this.audioContext.createGain();
       const subGain = this.audioContext.createGain();
-      const noiseGain = this.audioContext.createGain();
+      const harmonicGain = this.audioContext.createGain();
+      const warmthGain = this.audioContext.createGain();
       const masterGain = this.audioContext.createGain();
       
-      // Create a low-pass filter for warmth
-      const filter = this.audioContext.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = frequency * 4;
-      filter.Q.value = 2;
+      // Create filters for warm, pleasant tone
+      const lowPassFilter = this.audioContext.createBiquadFilter();
+      lowPassFilter.type = 'lowpass';
+      lowPassFilter.frequency.value = frequency * 4;
+      lowPassFilter.Q.value = 1.5; // Gentler filtering
+
+      const warmthFilter = this.audioContext.createBiquadFilter();
+      warmthFilter.type = 'peaking';
+      warmthFilter.frequency.value = frequency * 0.5;
+      warmthFilter.Q.value = 2;
+      warmthFilter.gain.value = 3; // Boost low-mid frequencies for warmth
 
       // Connect the audio graph
       mainOsc.connect(mainGain);
       subOsc.connect(subGain);
-      noiseOsc.connect(noiseGain);
+      harmonicOsc.connect(harmonicGain);
+      warmthOsc.connect(warmthGain);
       
-      mainGain.connect(filter);
-      subGain.connect(filter);
-      noiseGain.connect(filter);
-      filter.connect(masterGain);
+      mainGain.connect(lowPassFilter);
+      subGain.connect(warmthFilter);
+      harmonicGain.connect(lowPassFilter);
+      warmthGain.connect(warmthFilter);
+      
+      lowPassFilter.connect(masterGain);
+      warmthFilter.connect(masterGain);
       masterGain.connect(this.audioContext.destination);
 
-      // Configure oscillators
+      // Configure oscillators for pleasing sound
       mainOsc.type = type;
       mainOsc.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
       
-      subOsc.type = 'triangle';
-      subOsc.frequency.setValueAtTime(frequency * 0.5, this.audioContext.currentTime); // Sub harmonic
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(frequency * 0.5, this.audioContext.currentTime); // Perfect fifth below
       
-      noiseOsc.type = 'sawtooth';
-      noiseOsc.frequency.setValueAtTime(frequency * 2, this.audioContext.currentTime); // Harmonic
+      harmonicOsc.type = 'triangle';
+      harmonicOsc.frequency.setValueAtTime(frequency * 1.5, this.audioContext.currentTime); // Perfect fifth above
+      
+      warmthOsc.type = 'triangle';
+      warmthOsc.frequency.setValueAtTime(frequency * 0.25, this.audioContext.currentTime); // Sub bass for warmth
 
-      // Set gain levels
+      // Set gain levels for pleasant sound
       const currentTime = this.audioContext.currentTime;
-      const attackTime = 0.005;
+      const attackTime = 0.01; // Gentle attack
       const decayTime = duration * 0.3;
       const sustainLevel = volume * 0.7;
 
-      // Main oscillator (strongest)
+      // Main oscillator (primary tone)
       mainGain.gain.setValueAtTime(0, currentTime);
-      mainGain.gain.linearRampToValueAtTime(volume, currentTime + attackTime);
+      mainGain.gain.linearRampToValueAtTime(volume * 0.8, currentTime + attackTime);
       mainGain.gain.exponentialRampToValueAtTime(sustainLevel, currentTime + decayTime);
       mainGain.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
 
-      // Sub oscillator (adds weight)
+      // Sub oscillator (adds body)
       subGain.gain.setValueAtTime(0, currentTime);
-      subGain.gain.linearRampToValueAtTime(volume * 0.3, currentTime + attackTime);
-      subGain.gain.exponentialRampToValueAtTime(sustainLevel * 0.3, currentTime + decayTime);
+      subGain.gain.linearRampToValueAtTime(volume * 0.4, currentTime + attackTime);
+      subGain.gain.exponentialRampToValueAtTime(sustainLevel * 0.4, currentTime + decayTime);
       subGain.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
 
-      // Noise oscillator (adds brightness)
-      noiseGain.gain.setValueAtTime(0, currentTime);
-      noiseGain.gain.linearRampToValueAtTime(volume * 0.1, currentTime + attackTime);
-      noiseGain.gain.exponentialRampToValueAtTime(0.001, currentTime + attackTime + 0.02);
+      // Harmonic oscillator (adds sparkle)
+      harmonicGain.gain.setValueAtTime(0, currentTime);
+      harmonicGain.gain.linearRampToValueAtTime(volume * 0.15, currentTime + attackTime);
+      harmonicGain.gain.exponentialRampToValueAtTime(0.001, currentTime + attackTime + 0.05);
 
-      // Master gain envelope
-      masterGain.gain.setValueAtTime(1, currentTime);
+      // Warmth oscillator (adds depth)
+      warmthGain.gain.setValueAtTime(0, currentTime);
+      warmthGain.gain.linearRampToValueAtTime(volume * 0.2, currentTime + attackTime * 2);
+      warmthGain.gain.exponentialRampToValueAtTime(sustainLevel * 0.2, currentTime + decayTime);
+      warmthGain.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
 
       mainOsc.start(currentTime);
       subOsc.start(currentTime);
-      noiseOsc.start(currentTime);
+      harmonicOsc.start(currentTime);
+      warmthOsc.start(currentTime);
       
       mainOsc.stop(currentTime + duration);
       subOsc.stop(currentTime + duration);
-      noiseOsc.stop(currentTime + duration);
+      harmonicOsc.stop(currentTime + duration);
+      warmthOsc.stop(currentTime + duration);
     } catch (error) {
       console.warn('Error playing sound:', error);
     }
@@ -154,41 +174,41 @@ export class SoundManager {
 
     switch (lineCount) {
       case 1:
-        // Single line - crisp, satisfying pop
-        await this.playTone(660, 0.12, 'square', 0.35);
+        // Single line - warm, satisfying chime
+        await this.playTone(587, 0.18, 'sine', 0.4); // D5
         break;
       
       case 2:
-        // Double line - ascending power chord
+        // Double line - pleasant ascending harmony
         await this.playSequence([
-          { frequency: 523, duration: 0.08, type: 'square', volume: 0.3 }, // C
-          { frequency: 698, duration: 0.12, type: 'square', volume: 0.35, delay: 40 } // F
+          { frequency: 523, duration: 0.12, type: 'sine', volume: 0.35 }, // C5
+          { frequency: 659, duration: 0.16, type: 'sine', volume: 0.4, delay: 20 } // E5
         ]);
         break;
       
       case 3:
-        // Triple line - ascending triad
+        // Triple line - beautiful ascending triad
         await this.playSequence([
-          { frequency: 523, duration: 0.06, type: 'square', volume: 0.3 }, // C
-          { frequency: 659, duration: 0.06, type: 'square', volume: 0.32, delay: 30 }, // E
-          { frequency: 784, duration: 0.14, type: 'square', volume: 0.38, delay: 30 } // G
+          { frequency: 523, duration: 0.1, type: 'sine', volume: 0.35 }, // C5
+          { frequency: 659, duration: 0.1, type: 'sine', volume: 0.37, delay: 20 }, // E5
+          { frequency: 784, duration: 0.18, type: 'sine', volume: 0.42, delay: 20 } // G5
         ]);
         break;
       
       case 4:
-        // Tetris - triumphant fanfare
+        // Tetris - majestic, celebratory cascade
         await this.playSequence([
-          { frequency: 523, duration: 0.08, type: 'sawtooth', volume: 0.4 }, // C
-          { frequency: 659, duration: 0.08, type: 'sawtooth', volume: 0.42, delay: 35 }, // E
-          { frequency: 784, duration: 0.08, type: 'sawtooth', volume: 0.44, delay: 35 }, // G
-          { frequency: 1047, duration: 0.16, type: 'sawtooth', volume: 0.5, delay: 35 }, // C (high)
-          { frequency: 1319, duration: 0.2, type: 'sawtooth', volume: 0.45, delay: 80 } // E (high)
+          { frequency: 523, duration: 0.12, type: 'sine', volume: 0.4 }, // C5
+          { frequency: 659, duration: 0.12, type: 'sine', volume: 0.42, delay: 25 }, // E5
+          { frequency: 784, duration: 0.12, type: 'sine', volume: 0.44, delay: 25 }, // G5
+          { frequency: 1047, duration: 0.15, type: 'sine', volume: 0.48, delay: 25 }, // C6
+          { frequency: 1319, duration: 0.2, type: 'sine', volume: 0.45, delay: 60 } // E6
         ]);
         break;
       
       default:
         // Fallback for any other line count
-        await this.playTone(660, 0.12, 'square', 0.35);
+        await this.playTone(587, 0.18, 'sine', 0.4);
         break;
     }
   }
@@ -197,21 +217,21 @@ export class SoundManager {
    * Play piece lock sound
    */
   async playPieceLock(): Promise<void> {
-    await this.playTone(330, 0.06, 'square', 0.25);
+    await this.playTone(440, 0.1, 'sine', 0.3); // A4 - pleasant lock sound
   }
 
   /**
    * Play piece move sound
    */
   async playPieceMove(): Promise<void> {
-    await this.playTone(200, 0.04, 'triangle', 0.12);
+    await this.playTone(294, 0.06, 'triangle', 0.15); // D4 - soft movement
   }
 
   /**
    * Play piece rotate sound
    */
   async playPieceRotate(): Promise<void> {
-    await this.playTone(440, 0.05, 'square', 0.18);
+    await this.playTone(370, 0.08, 'sine', 0.2); // F#4 - gentle rotation
   }
 
   /**
