@@ -17,3 +17,39 @@
     image-rendering: crisp-edges;
   }
 }
+
+/* Make game panels semi-transparent with backdrop blur */
+#app > div > div {
+  background: rgba(26, 26, 26, 0.85) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Ensure game board has good contrast */
+#game-container {
+  background: rgba(10, 10, 10, 0.9) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+/* Level up particle animation */
+@keyframes levelParticle {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(
+      calc(cos(var(--angle)) * var(--distance)),
+      calc(sin(var(--angle)) * var(--distance))
+    ) scale(1.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+      calc(cos(var(--angle)) * var(--distance) * 1.5),
+      calc(sin(var(--angle)) * var(--distance) * 1.5)
+    ) scale(0);
+    opacity: 0;
+  }
+}

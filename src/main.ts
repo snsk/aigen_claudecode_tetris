@@ -4,6 +4,8 @@ import { Renderer } from '@/renderer/renderer';
 import { GameState } from '@/types/tetris';
 import { UIManager } from '@/ui/ui-manager';
 import { ErrorHandler } from '@/utils/error-handler';
+import { renderBackground, updateBackgroundTime } from '@/components/Background';
+import '@/components/Background.css';
 
 /**
  * Keyboard mapping
@@ -44,6 +46,9 @@ class TetrisApp {
    */
   async init(): Promise<void> {
     try {
+      // Initialize background
+      this.initBackground();
+      
       // Get DOM elements with error handling
       const gameContainer = ErrorHandler.getRequiredElement('game-container');
       const holdContainer = ErrorHandler.getRequiredElement('hold-container');
@@ -69,6 +74,17 @@ class TetrisApp {
     } catch (error) {
       ErrorHandler.handle(error instanceof Error ? error : new Error(String(error)), 'App initialization');
       this.showErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
+    }
+  }
+
+  /**
+   * Initialize background component
+   */
+  private initBackground(): void {
+    const backgroundContainer = document.getElementById('background-container');
+    if (backgroundContainer) {
+      const backgroundElement = renderBackground();
+      backgroundContainer.appendChild(backgroundElement);
     }
   }
 
@@ -130,10 +146,60 @@ class TetrisApp {
     // Handle level up
     this.game.on('level_up', (event) => {
       console.log(`Level up! New level: ${event.data.level}`);
+      // Update background time based on level
+      updateBackgroundTime(event.data.level);
+      // Trigger level up particle effect
+      this.showLevelUpEffect();
     });
 
     // Handle game completion (999 lines)
     this.checkGameCompletion();
+  }
+
+  /**
+   * Show level up particle effect
+   */
+  private showLevelUpEffect(): void {
+    const levelElement = document.getElementById('level');
+    if (!levelElement) return;
+
+    // Create particle container
+    const particleContainer = document.createElement('div');
+    particleContainer.className = 'level-up-particles';
+    particleContainer.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 1000;
+    `;
+
+    // Create particles
+    for (let i = 0; i < 12; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'level-particle';
+      particle.style.cssText = `
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: linear-gradient(45deg, #FFD700, #FFA500);
+        border-radius: 50%;
+        animation: levelParticle 1.5s ease-out forwards;
+        transform-origin: center;
+        --angle: ${(i * 30)}deg;
+        --distance: ${60 + Math.random() * 40}px;
+      `;
+      particleContainer.appendChild(particle);
+    }
+
+    // Add to level element's parent
+    levelElement.parentElement?.appendChild(particleContainer);
+
+    // Remove after animation
+    setTimeout(() => {
+      particleContainer.remove();
+    }, 1500);
   }
 
   /**

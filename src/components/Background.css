@@ -1,0 +1,555 @@
+.background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+/* Sky with gradient */
+.sky {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    #87CEEB 0%,
+    #98D8E8 20%,
+    #B6E5F1 40%,
+    #FFE4B5 60%,
+    #FFD4A3 80%,
+    #FFDAB9 100%
+  );
+  transition: background 2s ease-in-out;
+}
+
+/* Time of day based on level */
+.sky[data-time="dawn"] {
+  background: linear-gradient(
+    180deg,
+    #FF7B54 0%,
+    #FFB26B 20%,
+    #FFD4A3 40%,
+    #FFE4B5 60%,
+    #FFDAB9 80%,
+    #FFC0CB 100%
+  );
+}
+
+.sky[data-time="morning"] {
+  background: linear-gradient(
+    180deg,
+    #87CEEB 0%,
+    #98D8E8 20%,
+    #B6E5F1 40%,
+    #FFE4B5 60%,
+    #FFD4A3 80%,
+    #FFDAB9 100%
+  );
+}
+
+.sky[data-time="noon"] {
+  background: linear-gradient(
+    180deg,
+    #4A90E2 0%,
+    #5BA0F2 20%,
+    #87CEEB 40%,
+    #B6E5F1 60%,
+    #FFE4B5 80%,
+    #FFDAB9 100%
+  );
+}
+
+.sky[data-time="afternoon"] {
+  background: linear-gradient(
+    180deg,
+    #6BA6E5 0%,
+    #85C1E9 20%,
+    #A3D5ED 40%,
+    #FFE4B5 60%,
+    #FFD4A3 80%,
+    #FFDAB9 100%
+  );
+}
+
+.sky[data-time="sunset"] {
+  background: linear-gradient(
+    180deg,
+    #FF6B35 0%,
+    #FF8C42 20%,
+    #FFAB5C 40%,
+    #FFC78E 60%,
+    #FFD4A3 80%,
+    #FFDAB9 100%
+  );
+}
+
+.sky[data-time="dusk"] {
+  background: linear-gradient(
+    180deg,
+    #4A5D7A 0%,
+    #5A6B85 20%,
+    #708090 40%,
+    #9CA8B8 60%,
+    #B8C6DB 80%,
+    #D4E0F0 100%
+  );
+}
+
+.sky[data-time="night"] {
+  background: linear-gradient(
+    180deg,
+    #0C1445 0%,
+    #1E3A5F 20%,
+    #2E5266 40%,
+    #3E6B7C 60%,
+    #4A90E2 80%,
+    #6BA6E5 100%
+  );
+}
+
+/* Animated clouds */
+.clouds {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 100px;
+  opacity: 0.7;
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 100px;
+}
+
+.cloud-1 {
+  width: 100px;
+  height: 40px;
+  top: 20%;
+  left: -100px;
+  animation: cloudMove 60s linear infinite;
+}
+
+.cloud-1::before {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 10px;
+}
+
+.cloud-1::after {
+  width: 60px;
+  height: 40px;
+  top: -15px;
+  right: 10px;
+}
+
+.cloud-2 {
+  width: 80px;
+  height: 35px;
+  top: 15%;
+  left: -80px;
+  animation: cloudMove 75s linear infinite 10s;
+}
+
+.cloud-2::before {
+  width: 40px;
+  height: 40px;
+  top: -20px;
+  left: 15px;
+}
+
+.cloud-2::after {
+  width: 50px;
+  height: 35px;
+  top: -10px;
+  right: 15px;
+}
+
+.cloud-3 {
+  width: 120px;
+  height: 45px;
+  top: 30%;
+  left: -120px;
+  animation: cloudMove 90s linear infinite 20s;
+}
+
+.cloud-3::before {
+  width: 60px;
+  height: 60px;
+  top: -30px;
+  left: 20px;
+}
+
+.cloud-3::after {
+  width: 70px;
+  height: 45px;
+  top: -15px;
+  right: 20px;
+}
+
+.cloud-4 {
+  width: 90px;
+  height: 40px;
+  top: 25%;
+  left: -90px;
+  animation: cloudMove 65s linear infinite 30s;
+}
+
+.cloud-4::before {
+  width: 45px;
+  height: 45px;
+  top: -22px;
+  left: 10px;
+}
+
+.cloud-4::after {
+  width: 55px;
+  height: 40px;
+  top: -12px;
+  right: 10px;
+}
+
+@keyframes cloudMove {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(100vw + 200px));
+  }
+}
+
+/* Mountains */
+.mountains {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mountain {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.mountain-1 {
+  border-left: 400px solid transparent;
+  border-right: 400px solid transparent;
+  border-bottom: 300px solid #4A5568;
+  left: -200px;
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.2));
+}
+
+.mountain-1::before {
+  content: '';
+  position: absolute;
+  left: -100px;
+  top: 100px;
+  width: 0;
+  height: 0;
+  border-left: 100px solid transparent;
+  border-right: 100px solid transparent;
+  border-bottom: 80px solid rgba(255, 255, 255, 0.3);
+}
+
+.mountain-2 {
+  border-left: 350px solid transparent;
+  border-right: 350px solid transparent;
+  border-bottom: 350px solid #5A6678;
+  right: -100px;
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.2));
+}
+
+.mountain-3 {
+  border-left: 300px solid transparent;
+  border-right: 300px solid transparent;
+  border-bottom: 250px solid #6A7688;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.1));
+}
+
+/* Forest */
+.forest {
+  position: absolute;
+  bottom: 80px; /* Move above river */
+  width: 100%;
+  height: 200px;
+}
+
+.tree {
+  position: absolute;
+  bottom: 0;
+}
+
+.tree::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-bottom: 80px solid #228B22;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tree::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-left: 40px solid transparent;
+  border-right: 40px solid transparent;
+  border-bottom: 100px solid #2E7D2E;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tree-1 {
+  left: 10%;
+  width: 20px;
+  height: 40px;
+  background: #654321;
+}
+
+.tree-2 {
+  left: 25%;
+  width: 25px;
+  height: 45px;
+  background: #654321;
+  transform: scale(1.2);
+}
+
+.tree-3 {
+  left: 40%;
+  width: 20px;
+  height: 40px;
+  background: #654321;
+  transform: scale(0.9);
+}
+
+.tree-4 {
+  right: 30%;
+  width: 22px;
+  height: 42px;
+  background: #654321;
+  transform: scale(1.1);
+}
+
+.tree-5 {
+  right: 15%;
+  width: 20px;
+  height: 40px;
+  background: #654321;
+}
+
+/* River */
+.river {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 80px;
+  overflow: hidden;
+}
+
+.water {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(64, 164, 223, 0.7) 0%,
+    rgba(41, 128, 185, 0.8) 50%,
+    rgba(52, 152, 219, 0.9) 100%
+  );
+  animation: waterFlow 8s ease-in-out infinite;
+}
+
+@keyframes waterFlow {
+  0%, 100% {
+    transform: translateX(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-20px) scaleY(1.05);
+  }
+}
+
+.ripple {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: rippleEffect 4s ease-in-out infinite;
+}
+
+.ripple-1 {
+  width: 100px;
+  height: 20px;
+  bottom: 30px;
+  left: 20%;
+}
+
+.ripple-2 {
+  width: 80px;
+  height: 15px;
+  bottom: 20px;
+  left: 50%;
+  animation-delay: 1s;
+}
+
+.ripple-3 {
+  width: 120px;
+  height: 25px;
+  bottom: 40px;
+  right: 20%;
+  animation-delay: 2s;
+}
+
+@keyframes rippleEffect {
+  0%, 100% {
+    transform: scale(1) translateX(0);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2) translateX(10px);
+    opacity: 0.1;
+  }
+}
+
+/* Floating particles */
+.particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: particleFloat 20s infinite linear;
+}
+
+.particle:nth-child(1) {
+  width: 3px;
+  height: 3px;
+  left: 10%;
+  animation-duration: 25s;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  width: 2px;
+  height: 2px;
+  left: 20%;
+  animation-duration: 20s;
+  animation-delay: 2s;
+}
+
+.particle:nth-child(3) {
+  width: 4px;
+  height: 4px;
+  left: 35%;
+  animation-duration: 28s;
+  animation-delay: 4s;
+}
+
+.particle:nth-child(4) {
+  width: 2px;
+  height: 2px;
+  left: 50%;
+  animation-duration: 22s;
+  animation-delay: 6s;
+}
+
+.particle:nth-child(5) {
+  width: 3px;
+  height: 3px;
+  left: 65%;
+  animation-duration: 26s;
+  animation-delay: 8s;
+}
+
+.particle:nth-child(6) {
+  width: 2px;
+  height: 2px;
+  left: 75%;
+  animation-duration: 24s;
+  animation-delay: 10s;
+}
+
+.particle:nth-child(7) {
+  width: 4px;
+  height: 4px;
+  left: 85%;
+  animation-duration: 30s;
+  animation-delay: 12s;
+}
+
+.particle:nth-child(8) {
+  width: 3px;
+  height: 3px;
+  left: 95%;
+  animation-duration: 27s;
+  animation-delay: 14s;
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(100px);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mountain-1 {
+    border-left-width: 200px;
+    border-right-width: 200px;
+    border-bottom-width: 200px;
+  }
+  
+  .mountain-2 {
+    border-left-width: 175px;
+    border-right-width: 175px;
+    border-bottom-width: 250px;
+  }
+  
+  .mountain-3 {
+    border-left-width: 150px;
+    border-right-width: 150px;
+    border-bottom-width: 180px;
+  }
+  
+  .tree {
+    transform: scale(0.7);
+  }
+}
